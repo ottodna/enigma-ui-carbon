@@ -3,6 +3,7 @@ import type { SSEMessage, Decision, EnigmaState } from './types';
 import { API } from './config';
 
 const SSE_URL = `${API}/stream`;
+const HISTORY_URL = `${API}/all-decisions`;
 const CACHE_KEY = 'enigma-decisions';
 const MAX_CACHE = 200;
 
@@ -24,6 +25,32 @@ export function useSSE() {
   const [decisions, setDecisions] = useState<Decision[]>(loadCache);
   const esRef = useRef<EventSource | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const loadedHistory = useRef(false);
+
+  // Load full history from log file on first mount
+  const loadHistory = useCallback(async () => {
+    if (loadedHistory.current) return;
+    loadedHistory.current = true;
+    try {
+      const res = await fetch(HISTORY_URL);
+      if (!res.ok) return;
+      const history: Decision[] = await res.json();
+      if (history.length) {
+        // Only take exits with P&L for the feed, plus system events
+        const relevant = history.filter(d => {
+          const dt = d.decision_type?.toUpperCase() ?? '';
+          const exitTypes = new Set([
+            'TARGET_HIT', 'STOP_LOSS', 'TRAILING_SL', 'TIME_EXIT', 'EXIT',
+            'MARKET_CLOSE', 'MANUAL_SQUARE_OFF', 'REJECTION', 'MIS_SQUARE_OFF',
+            'SYSTEM_START', 'SYSTEM_STOP', 'PAUSE', 'ENTRY', 'PARAM_ADJUST'
+          ]);
+          return exitTypes.has(dt) || d.net_pnl != null;
+        });
+        setDecisions(relevant.slice(-MAX_CACHE));
+        saveCache(relevant.slice(-MAX_CACHE));
+      }
+    } catch { /* network error — SSE will catch up */ }
+  }, []);
 
   const connect = useCallback(() => {
     esRef.current?.close();
@@ -56,12 +83,13 @@ export function useSSE() {
   }, []);
 
   useEffect(() => {
+    loadHistory();
     connect();
     return () => {
       esRef.current?.close();
       clearTimeout(timerRef.current);
     };
-  }, [connect]);
+  }, [connect, loadHistory]);
 
   return { state, decisions };
 }
