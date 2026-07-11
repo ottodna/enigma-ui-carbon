@@ -1,96 +1,42 @@
-// Carbon v11 dark theme for trading terminal
-// IBM Plex Sans + JetBrains Mono for data
+// Carbon v11 dark theme
+// Uses Carbon's $g100 (dark) theme as base, then overrides custom tokens
 
 @use '@carbon/react/scss/themes';
 @use '@carbon/react/scss/theme' with (
-  $theme: (
-    // Backgrounds — darkest to lightest
-    background: #08080e,
-    layer: #0e0e16,
-    layer-accent: #14141e,
-    layer-accent-hover: #1a1a28,
-    layer-selected: #1e1e30,
-    layer-selected-hover: #242438,
-    layer-hover: #161620,
-    field: #0e0e16,
-    field-hover: #14141e,
-
-    // Text
-    text-primary: #e4e4ec,
-    text-secondary: #8888a0,
-    text-placeholder: #5a5a72,
-    text-on-color: #ffffff,
-    text-disabled: #4a4a5a,
-
-    // Borders
-    border-subtle: #1e1e30,
-    border-strong: #2a2a3e,
-    border-interactive: #4b9fff,
-
-    // Primary accent (blue — data/analytics feel)
-    button-primary: #4b9fff,
-    button-primary-hover: #5babff,
-    button-primary-active: #3b8fee,
-    link-primary: #4b9fff,
-    link-primary-hover: #5babff,
-
-    // Semantic colors
-    support-success: #22c55e,
-    support-error: #ef4444,
-    support-warning: #eab308,
-    support-info: #4b9fff,
-
-    // Focus
-    focus: #4b9fff,
-    focus-inset: #0e0e16,
-    focus-inverse: #08080e,
-
-    // Skeleton loading
-    skeleton-element: #1a1a28,
-    skeleton-background: #0e0e16,
-  )
+  $theme: themes.$g100
 );
 
-// Global overrides
+// Core Carbon styles
 @use '@carbon/react';
-@use '@carbon/react/scss/breakpoint' as *;
 
-// Typography
+// Custom overrides for trading terminal density
+:root {
+  --enigma-bg: #08080e;
+  --enigma-surface: #0e0e16;
+  --enigma-border: #1e1e30;
+  --enigma-text: #e4e4ec;
+  --enigma-text2: #8888a0;
+  --enigma-text3: #5a5a72;
+  --enigma-accent: #4b9fff;
+  --enigma-green: #22c55e;
+  --enigma-red: #ef4444;
+  --enigma-yellow: #eab308;
+  --enigma-purple: #a855f7;
+}
+
 body {
   font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  background: #08080e;
-  color: #e4e4ec;
-}
-
-// Compact data display (smaller font for trading data)
-.data-compact {
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.data-mono {
-  font-family: 'JetBrains Mono', 'IBM Plex Mono', monospace;
-  font-variant-numeric: tabular-nums;
-}
-
-// Carbon grid overrides for trader density
-.cds--grid {
-  padding: 0;
-}
-
-.cds--content {
-  padding: 0;
-  margin-top: 0;
+  background: var(--enigma-bg);
+  color: var(--enigma-text);
 }
 
 // Scrollbar
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #3a3a52; }
 
 // Feed animation
 @keyframes feed-enter {
@@ -99,4 +45,10 @@ body {
 }
 .feed-enter {
   animation: feed-enter 0.15s ease-out;
+}
+
+// Data display utility classes
+.data-mono {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
 }
