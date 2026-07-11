@@ -140,3 +140,79 @@ body {
   border-bottom: 1px solid var(--cds-border-subtle);
 }
 
+// ═══ Monitor page sub-components ═══
+
+// Status footer inside feed tile
+.feed-footer {
+  display: flex;
+  align-items: center;
+  padding: var(--cds-spacing-03) var(--cds-spacing-05);
+  border-top: 1px solid var(--cds-border-subtle);
+  font-size: 0.72rem;
+  color: var(--cds-text-secondary);
+}
+
+.feed-status-emoji {
+  margin-right: 4px;
+  font-size: 0.85rem;
+}
+
+// WS indicator badge
+.ws-badge {
+  font-size: 0.68rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 12px;
+}
+
+.ws-live {
+  background: color-mix(in srgb, var(--cds-support-success) 15%, transparent);
+  color: var(--cds-support-success);
+}
+
+.ws-off {
+  background: color-mix(in srgb, var(--cds-background-inverse) 10%, transparent);
+  color: var(--cds-text-placeholder);
+}
+
+// Trend chip in feed rows
+.trend-chip {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 0.65rem;
+  background: color-mix(in srgb, var(--cds-link-primary) 15%, transparent);
+  color: var(--cds-link-primary);
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+// Tile section titles
+.tile-title {
+  margin: 0 0 var(--cds-spacing-04) 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cds-text-secondary);
+}
+
+// StructuredList label/value styles for position card
+.sl-label {
+  color: var(--cds-text-secondary);
+  font-size: 0.78rem;
+  width: 90px;
+}
+
+.sl-value {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--cds-text-primary);
+}
+
+// Empty state labels
+.empty-label {
+  color: var(--cds-text-placeholder);
+  font-size: 0.82rem;
+  padding: 8px 0;
+}
+
