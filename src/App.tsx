@@ -52,14 +52,14 @@ export default function App() {
             <HeaderGlobalBar>
               {isPaused && (
                 <HeaderGlobalAction aria-label="Paused" tooltipAlignment="end">
-                  <WarningFilled size={20} style={{ color: '#f1c21b' }} />
+                  <WarningFilled size={20} style={{ color: 'var(--cds-support-warning)' }} />
                 </HeaderGlobalAction>
               )}
               <HeaderGlobalAction aria-label={state?.ws_active ? 'WebSocket Live' : 'WebSocket Off'} tooltipAlignment="end">
-                <CircleFilled size={16} style={{ color: state?.ws_active ? '#24a148' : '#6f6f6f' }} />
+                <CircleFilled size={16} style={{ color: state?.ws_active ? 'var(--cds-support-success)' : 'var(--cds-icon-secondary)' }} />
               </HeaderGlobalAction>
               <HeaderGlobalAction aria-label="Status" tooltipAlignment="end">
-                <Radio size={16} style={{ color: isRunning ? '#24a148' : '#6f6f6f' }} />
+                <Radio size={16} style={{ color: isRunning ? 'var(--cds-support-success)' : 'var(--cds-icon-secondary)' }} />
               </HeaderGlobalAction>
             </HeaderGlobalBar>
           </Header>

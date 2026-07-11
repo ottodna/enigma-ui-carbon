@@ -114,7 +114,7 @@ export function MonitorPage({ state, decisions }: Props) {
       </Grid>
 
       {/* Main content: feed (left) + sidebar (right) */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', padding: 'var(--cds-spacing-05)' }}>
+      <div className="main-split" style={{ flex: 1, display: 'flex', overflow: 'hidden', padding: 'var(--cds-spacing-05)' }}>
         {/* LEFT: Decision Feed */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, marginRight: 'var(--cds-spacing-05)' }}>
           <Tile className="feed-tile" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -198,9 +198,9 @@ export function MonitorPage({ state, decisions }: Props) {
         </div>
 
         {/* RIGHT: Position + Controls + Recent Trades */}
-        <div style={{ width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 'var(--cds-spacing-05)' }}>
+        <div className="sidebar-panel" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--cds-spacing-05)' }}>
           {/* Position Card */}
-          <Tile className="position-tile">
+          <Tile className="position-tile tile-elevated">
             <h4 className="tile-title">Active Position</h4>
             {state?.position ? (
               <StructuredListWrapper isCondensed>
@@ -246,7 +246,7 @@ export function MonitorPage({ state, decisions }: Props) {
           </Tile>
 
           {/* Control Buttons */}
-          <Tile>
+          <Tile className="tile-raised">
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               {!isRunning ? (
                 <Button kind="primary" size="sm" onClick={() => controlAction('start')}>Start</Button>
@@ -264,7 +264,7 @@ export function MonitorPage({ state, decisions }: Props) {
           </Tile>
 
           {/* Recent Trades */}
-          <Tile>
+          <Tile className="tile-raised">
             <h4 className="tile-title">Recent Trades</h4>
             {exitDecisions.length === 0 ? (
               <p className="empty-label">No trades yet</p>
@@ -280,14 +280,14 @@ export function MonitorPage({ state, decisions }: Props) {
                     const pnlVal = d.net_pnl;
                     return (
                       <StructuredListRow key={i}>
-                        <StructuredListCell noWrap style={{ width: 70, fontSize: '0.72rem', color: 'var(--cds-text-secondary)' }}>
+                        <StructuredListCell noWrap style={{ width: 70, fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>
                           {d.timestamp?.slice(11, 16) ?? '--:--'}
                         </StructuredListCell>
                         <StructuredListCell><Tag type={tag.type} size="sm">{tag.label}</Tag></StructuredListCell>
-                        <StructuredListCell style={{ fontSize: '0.78rem' }}>{sym}</StructuredListCell>
+                        <StructuredListCell style={{ fontSize: '0.8rem' }}>{sym}</StructuredListCell>
                         {pnlVal != null && (
                           <StructuredListCell noWrap style={{ textAlign: 'right', width: 80 }}>
-                            <span className={`${pnlVal >= 0 ? 'text-green' : 'text-red'}`} style={{ fontWeight: 600, fontSize: '0.78rem' }}>
+                            <span className={`${pnlVal >= 0 ? 'text-green' : 'text-red'}`} style={{ fontWeight: 600, fontSize: '0.8rem' }}>
                               {pnlVal >= 0 ? '+' : ''}₹{pnlVal.toFixed(2)}
                             </span>
                           </StructuredListCell>

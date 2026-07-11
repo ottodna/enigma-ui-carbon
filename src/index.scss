@@ -26,7 +26,7 @@
 
 body {
   font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   background: var(--enigma-bg);
@@ -57,29 +57,32 @@ body {
 
 // Metric tiles in the top strip
 .metric-tile {
-  min-height: 80px;
+  min-height: 88px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   border-left: 3px solid var(--cds-border-interactive);
+  padding: var(--cds-spacing-04) var(--cds-spacing-05);
 }
 
 .metric-label {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--cds-text-secondary);
+  font-weight: 500;
 }
 
 .metric-value {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 600;
   color: var(--cds-text-primary);
+  line-height: 1.2;
 }
 
 .metric-sub {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--cds-text-placeholder);
 }
 
@@ -159,10 +162,11 @@ body {
 
 // WS indicator badge
 .ws-badge {
-  font-size: 0.68rem;
-  padding: 2px 8px;
+  font-size: 0.72rem;
+  padding: 2px 10px;
   border-radius: 4px;
   margin-left: 12px;
+  font-weight: 500;
 }
 
 .ws-live {
@@ -179,8 +183,8 @@ body {
 .trend-chip {
   display: inline-block;
   margin-left: 6px;
-  padding: 1px 6px;
-  font-size: 0.65rem;
+  padding: 1px 7px;
+  font-size: 0.7rem;
   background: color-mix(in srgb, var(--cds-link-primary) 15%, transparent);
   color: var(--cds-link-primary);
   border-radius: 3px;
@@ -199,20 +203,50 @@ body {
 // StructuredList label/value styles for position card
 .sl-label {
   color: var(--cds-text-secondary);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   width: 90px;
 }
 
 .sl-value {
   font-weight: 600;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: var(--cds-text-primary);
 }
 
 // Empty state labels
 .empty-label {
   color: var(--cds-text-placeholder);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   padding: 8px 0;
+}
+
+// ── Tile elevation system ──
+// Position card and control tiles get elevation to stand out from feed
+.tile-elevated {
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+  border: 1px solid var(--cds-border-subtle);
+}
+
+.tile-raised {
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+  border: 1px solid var(--cds-border-subtle);
+}
+
+// ── Responsive sidebar ──
+// On lg+ (≥1056px): fixed 320px sidebar beside the feed
+// On sm/md (<1056px): sidebar stacks below as full-width
+@media (width >= 66rem) {
+  .sidebar-panel {
+    width: 320px;
+    flex-shrink: 0;
+  }
+}
+@media (width < 66rem) {
+  .sidebar-panel {
+    width: 100%;
+  }
+  .main-split {
+    flex-direction: column !important;
+  }
 }
 
