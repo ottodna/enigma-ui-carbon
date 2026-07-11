@@ -1,4 +1,5 @@
-const API = '/api';
+// Both containers share host networking on VPS
+const API = 'http://localhost:9090/api';
 
 export async function fetchState() {
   const res = await fetch(`${API}/state`);

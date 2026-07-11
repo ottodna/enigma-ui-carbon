@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import type { SSEMessage, Decision, EnigmaState } from './types';
 
+const SSE_URL = 'http://localhost:9090/api/stream';
 const CACHE_KEY = 'enigma-decisions';
 const MAX_CACHE = 200;
 
@@ -25,7 +26,7 @@ export function useSSE() {
 
   const connect = useCallback(() => {
     esRef.current?.close();
-    const es = new EventSource('/api/stream');
+    const es = new EventSource(SSE_URL);
     esRef.current = es;
 
     es.onmessage = (e) => {
