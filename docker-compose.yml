@@ -1,0 +1,8 @@
+services:
+  enigma-ui-carbon:
+    build: .
+    container_name: enigma-ui-carbon
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - NODE_ENV=production
