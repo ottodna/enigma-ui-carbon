@@ -1,19 +1,22 @@
 import { useEffect, useRef } from 'react';
 import {
-  Grid, Column, Tag, SkeletonText
+  Grid, Column,
+  Tile,
+  StructuredListWrapper, StructuredListBody, StructuredListRow, StructuredListCell,
+  Tag,
+  SkeletonText,
 } from '@carbon/react';
 import type { Decision, EnigmaState } from '../types';
 
-// Tag mapping — consistent with backend exit types
 const TAG_MAP: Record<string, { type: 'green' | 'red' | 'blue' | 'purple' | 'warm-gray' | 'gray'; label: string }> = {
   ENTRY: { type: 'green', label: 'BUY' },
   TARGET_HIT: { type: 'green', label: 'TARGET' },
-  STOP_LOSS: { type: 'red', label: 'SL' },
-  TRAILING_SL: { type: 'purple', label: 'TRAIL' },
+  STOP_LOSS: { type: 'red', label: 'STOP LOSS' },
+  TRAILING_SL: { type: 'purple', label: 'TRAIL SL' },
   REJECTION: { type: 'red', label: 'REJECT' },
-  TIME_EXIT: { type: 'blue', label: 'TIME' },
-  MANUAL_SQUARE_OFF: { type: 'warm-gray', label: 'SQR OFF' },
-  MIS_SQUARE_OFF: { type: 'warm-gray', label: 'MIS OFF' },
+  TIME_EXIT: { type: 'blue', label: 'TIME EXIT' },
+  MANUAL_SQUARE_OFF: { type: 'warm-gray', label: 'MANUAL SQ' },
+  MIS_SQUARE_OFF: { type: 'warm-gray', label: 'MIS SQ' },
   PAUSE: { type: 'warm-gray', label: 'PAUSE' },
   SYSTEM_START: { type: 'gray', label: 'START' },
   SYSTEM_STOP: { type: 'gray', label: 'STOP' },
@@ -39,117 +42,165 @@ export function MonitorPage({ state, decisions }: Props) {
     prevLen.current = decisions.length;
   }, [decisions.length]);
 
+  const pnl = state?.net_daily_pnl ?? 0;
+  const dailyPnl = state?.daily_pnl ?? 0;
+  const costs = state?.daily_costs ?? 0;
+
   return (
-    <Grid className="h-full">
-      {/* LEFT: Decision Feed — 75% width */}
-      <Column sm={4} md={6} lg={12} className="flex flex-col h-full">
-        <div className="flex items-center justify-between px-4 py-2 border-b border-[#1e1e30]">
-          <span className="text-xs font-semibold tracking-wider uppercase text-[#8888a0]">Mechanical Decision Feed</span>
-          <span className="text-xs text-[#5a5a72]">{decisions.length}</span>
-        </div>
+    <div className="enigma-monitor">
+      {/* Key metrics tile strip */}
+      <Grid narrow style={{ padding: 'var(--cds-spacing-05)' }}>
+        <Column sm={2} md={2} lg={4}>
+          <Tile className="metric-tile">
+            <span className="metric-label">Net P&amp;L</span>
+            <span className={`metric-value ${pnl > 0 ? 'text-green' : pnl < 0 ? 'text-red' : 'text-secondary'}`}>
+              {pnl >= 0 ? '+' : ''}₹{Math.abs(pnl).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </span>
+            <span className="metric-sub">Gross: ₹{dailyPnl.toFixed(0)} · Costs: ₹{costs.toFixed(0)}</span>
+          </Tile>
+        </Column>
+        <Column sm={2} md={2} lg={2}>
+          <Tile className="metric-tile">
+            <span className="metric-label">Trades</span>
+            <span className="metric-value">{state?.trades_today ?? 0} / {state?.params?.max_trades_per_day ?? 20}</span>
+            <span className="metric-sub">Today</span>
+          </Tile>
+        </Column>
+        <Column sm={2} md={2} lg={3}>
+          <Tile className="metric-tile">
+            <span className="metric-label">NIFTY Spot</span>
+            <span className="metric-value">{state?.last_spot?.toLocaleString('en-IN') ?? '—'}</span>
+            <span className="metric-sub">
+              {state?.price_trend ?? '—'} · {state?.regime ?? '—'} · VIX {state?.vix?.toFixed(1) ?? '—'}
+            </span>
+          </Tile>
+        </Column>
+        <Column sm={2} md={2} lg={3}>
+          <Tile className="metric-tile">
+            <span className="metric-label">Capital</span>
+            <span className="metric-value">₹{(state?.capital ?? 0).toLocaleString('en-IN')}</span>
+            <span className="metric-sub">{state?.live_status ?? '⏳ Loading...'}</span>
+          </Tile>
+        </Column>
+      </Grid>
 
-        <div ref={feedRef} className="flex-1 overflow-y-auto data-mono">
-          {decisions.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-[#5a5a72] text-sm">
-              {state ? 'Waiting for decisions...' : (
-                <div className="space-y-3 p-4">
-                  <SkeletonText width="60%" />
-                  <SkeletonText width="80%" />
-                  <SkeletonText width="40%" />
-                </div>
-              )}
+      {/* Main content: feed + position */}
+      <Grid narrow style={{ padding: '0 var(--cds-spacing-05)' }}>
+        {/* LEFT: Decision Feed */}
+        <Column sm={4} md={4} lg={12}>
+          <Tile className="feed-tile">
+            <div className="feed-header">
+              <span>Mechanical Decision Feed</span>
+              <Tag type="gray" size="sm">{decisions.length} events</Tag>
             </div>
-          ) : (
-            decisions.map((d, i) => {
-              const dt = d.decision_type?.toUpperCase() ?? 'INFO';
-              const tag = TAG_MAP[dt] ?? { type: 'gray' as const, label: dt };
-              const ts = d.timestamp?.slice(11, 19) ?? '--:--';
-              const symbol = d.option_symbol
-                ? `${d.underlying ?? ''} ${d.option_strike ?? ''}${d.option_type ?? ''}`
-                : '';
-              const entryStr = d.entry_price ? ` @₹${d.entry_price.toFixed(0)}` : '';
-              const qtyStr = d.quantity ? ` ×${d.quantity}` : '';
-              const trend = d.market_context?.trend ?? '';
-              const mom = d.reasoning?.match(/Momentum=([-\d.]+)pts\(([-\d.]+)%\)/);
-              const momStr = mom ? ` Δ${mom[2]}%` : '';
-              const pnl = d.net_pnl;
 
-              return (
-                <div
-                  key={i}
-                  className={`feed-enter px-4 py-1 border-b border-[#1e1e30] hover:bg-[#14141e] transition-colors ${
-                    dt === 'ENTRY' ? 'bg-[#0a2a0a]' : dt === 'STOP_LOSS' || dt === 'REJECTION' ? 'bg-[#2a0a0a]' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="text-[#5a5a72] w-14 shrink-0 tabular-nums">{ts}</span>
-                    <Tag type={tag.type} size="sm">{tag.label}</Tag>
-                    <span className="font-semibold text-[#e4e4ec] truncate">{symbol}</span>
-                    <span className="text-[#8888a0] shrink-0">{entryStr}{qtyStr}</span>
-                    {trend && <span className="text-[10px] text-[#4b9fff]">{trend}</span>}
-                    {momStr && <span className="text-[10px] text-[#5a5a72]">{momStr}</span>}
-                    {pnl != null && (
-                      <span className={`ml-auto font-semibold tabular-nums ${pnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
-                        {pnl >= 0 ? '+' : ''}₹{pnl.toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                  {d.reasoning && symbol && (
-                    <div className="ml-[76px] text-[11px] text-[#5a5a72] truncate">
-                      {d.reasoning.slice(0, 140)}
+            <div ref={feedRef} className="feed-scroll" style={{ maxHeight: 'calc(100vh - 340px)', overflowY: 'auto' }}>
+              {decisions.length === 0 ? (
+                <div style={{ padding: 32, textAlign: 'center' }}>
+                  {state ? (
+                    <span style={{ color: 'var(--cds-text-secondary)' }}>Waiting for trading decisions...</span>
+                  ) : (
+                    <div style={{ width: '60%', margin: '0 auto' }}>
+                      <SkeletonText paragraph lineCount={3} />
                     </div>
                   )}
                 </div>
-              );
-            })
-          )}
-        </div>
-      </Column>
+              ) : (
+                <StructuredListWrapper isCondensed>
+                  <StructuredListBody>
+                    {decisions.slice(-60).reverse().map((d, i) => {
+                      const dt = d.decision_type?.toUpperCase() ?? 'INFO';
+                      const tag = TAG_MAP[dt] ?? { type: 'gray' as const, label: dt };
+                      const ts = d.timestamp?.slice(11, 19) ?? '--:--';
+                      const sym = d.option_symbol
+                        ? `${d.underlying ?? ''} ${d.option_strike ?? ''}${d.option_type ?? ''}`
+                        : '';
+                      const pnlVal = d.net_pnl;
 
-      {/* RIGHT: Stats + Position — 25% width */}
-      <Column sm={0} md={2} lg={4} className="border-l border-[#1e1e30] bg-[#0e0e16] p-4 space-y-4 overflow-y-auto">
-        {/* Quick Stats */}
-        <section>
-          <h3 className="text-xs font-semibold tracking-wider uppercase text-[#8888a0] mb-3">Session Stats</h3>
-          <div className="space-y-2 text-xs">
-            <QuickStat label="Spot" value={state?.last_spot?.toLocaleString() ?? '—'} />
-            <QuickStat label="VIX" value={state?.vix?.toFixed(1) ?? '—'} />
-            <QuickStat label="Trend" value={state?.price_trend ?? '—'} />
-            <QuickStat label="Regime" value={state?.regime ?? '—'} />
-          </div>
-        </section>
-
-        {/* Position Card */}
-        <section>
-          <h3 className="text-xs font-semibold tracking-wider uppercase text-[#8888a0] mb-3">Active Position</h3>
-          {state?.position ? (
-            <div className="space-y-2 text-xs">
-              <QuickStat label="Symbol" value={state.position.contract.symbol} />
-              <QuickStat label="Qty" value={String(state.position.quantity)} />
-              <QuickStat label="Entry" value={`₹${state.position.entry_premium.toFixed(2)}`} />
-              <QuickStat label="Current" value={`₹${state.position.current_premium.toFixed(2)}`} />
-              <div className="flex justify-between py-1 border-t border-[#1e1e30]">
-                <span className="text-[#8888a0]">Unrealized</span>
-                <span className={`font-semibold tabular-nums ${state.position.unrealized_pnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
-                  {state.position.unrealized_pnl >= 0 ? '+' : ''}₹{state.position.unrealized_pnl.toFixed(2)}
-                </span>
-              </div>
-              <QuickStat label="Held" value={`${Math.floor(state.position.holding_seconds / 60)}m ${state.position.holding_seconds % 60}s`} />
+                      return (
+                        <StructuredListRow key={i} className={`feed-row ${dt === 'ENTRY' ? 'row-entry' : dt === 'STOP_LOSS' ? 'row-loss' : ''}`}>
+                          <StructuredListCell noWrap style={{ width: 70 }}>
+                            <span style={{ color: 'var(--cds-text-secondary)', fontFamily: 'monospace' }}>{ts}</span>
+                          </StructuredListCell>
+                          <StructuredListCell noWrap style={{ width: 90 }}>
+                            <Tag type={tag.type} size="sm">{tag.label}</Tag>
+                          </StructuredListCell>
+                          <StructuredListCell>
+                            <span style={{ fontWeight: 600 }}>{sym}</span>
+                            {d.entry_price != null && (
+                              <span style={{ color: 'var(--cds-text-secondary)', marginLeft: 8, fontSize: '0.85em' }}>
+                                @₹{d.entry_price.toFixed(0)}{d.quantity ? ` ×${d.quantity}` : ''}
+                              </span>
+                            )}
+                          </StructuredListCell>
+                          {pnlVal != null && (
+                            <StructuredListCell noWrap style={{ textAlign: 'right', width: 100 }}>
+                              <span className={`${pnlVal >= 0 ? 'text-green' : 'text-red'}`} style={{ fontWeight: 600 }}>
+                                {pnlVal >= 0 ? '+' : ''}₹{pnlVal.toFixed(2)}
+                              </span>
+                            </StructuredListCell>
+                          )}
+                        </StructuredListRow>
+                      );
+                    })}
+                  </StructuredListBody>
+                </StructuredListWrapper>
+              )}
             </div>
-          ) : (
-            <p className="text-xs text-[#5a5a72]">No open position</p>
-          )}
-        </section>
-      </Column>
-    </Grid>
-  );
-}
+          </Tile>
+        </Column>
 
-function QuickStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between">
-      <span className="text-[#8888a0]">{label}</span>
-      <span className="font-semibold tabular-nums text-[#e4e4ec]">{value}</span>
+        {/* RIGHT: Position Card */}
+        <Column sm={4} md={4} lg={4}>
+          <Tile className="position-tile">
+            <h4 style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--cds-text-secondary)', marginBottom: 'var(--cds-spacing-05)' }}>
+              Active Position
+            </h4>
+            {state?.position ? (
+              <StructuredListWrapper isCondensed>
+                <StructuredListBody>
+                  <StructuredListRow>
+                    <StructuredListCell noWrap>Symbol</StructuredListCell>
+                    <StructuredListCell>{state.position.contract.symbol}</StructuredListCell>
+                  </StructuredListRow>
+                  <StructuredListRow>
+                    <StructuredListCell noWrap>Quantity</StructuredListCell>
+                    <StructuredListCell>{state.position.quantity}</StructuredListCell>
+                  </StructuredListRow>
+                  <StructuredListRow>
+                    <StructuredListCell noWrap>Entry</StructuredListCell>
+                    <StructuredListCell>₹{state.position.entry_premium.toFixed(2)}</StructuredListCell>
+                  </StructuredListRow>
+                  <StructuredListRow>
+                    <StructuredListCell noWrap>Current</StructuredListCell>
+                    <StructuredListCell>₹{state.position.current_premium.toFixed(2)}</StructuredListCell>
+                  </StructuredListRow>
+                  <StructuredListRow>
+                    <StructuredListCell noWrap>Unrealized P&amp;L</StructuredListCell>
+                    <StructuredListCell className={state.position.unrealized_pnl >= 0 ? 'text-green' : 'text-red'}>
+                      {state.position.unrealized_pnl >= 0 ? '+' : ''}₹{state.position.unrealized_pnl.toFixed(2)}
+                    </StructuredListCell>
+                  </StructuredListRow>
+                  <StructuredListRow>
+                    <StructuredListCell noWrap>Stop Loss</StructuredListCell>
+                    <StructuredListCell className="text-red">₹{state.position.initial_sl_premium.toFixed(2)}</StructuredListCell>
+                  </StructuredListRow>
+                  <StructuredListRow>
+                    <StructuredListCell noWrap>Trail SL</StructuredListCell>
+                    <StructuredListCell>{state.position.trailing_sl_premium > 0 ? `₹${state.position.trailing_sl_premium.toFixed(2)}` : '—'}</StructuredListCell>
+                  </StructuredListRow>
+                  <StructuredListRow>
+                    <StructuredListCell noWrap>Held</StructuredListCell>
+                    <StructuredListCell>{Math.floor(state.position.holding_seconds / 60)}m {state.position.holding_seconds % 60}s</StructuredListCell>
+                  </StructuredListRow>
+                </StructuredListBody>
+              </StructuredListWrapper>
+            ) : (
+              <p style={{ color: 'var(--cds-text-secondary)', fontSize: '0.875rem' }}>No open position</p>
+            )}
+          </Tile>
+        </Column>
+      </Grid>
     </div>
   );
 }

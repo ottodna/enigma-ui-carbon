@@ -52,3 +52,91 @@ body {
   font-family: 'IBM Plex Mono', monospace;
   font-variant-numeric: tabular-nums;
 }
+
+// ═══ Enigma Monitor — custom component styles ═══
+
+// Metric tiles in the top strip
+.metric-tile {
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  border-left: 3px solid var(--cds-border-interactive);
+}
+
+.metric-label {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cds-text-secondary);
+}
+
+.metric-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--cds-text-primary);
+}
+
+.metric-sub {
+  font-size: 0.6875rem;
+  color: var(--cds-text-placeholder);
+}
+
+// Color helpers
+.text-green { color: var(--cds-support-success) !important; }
+.text-red { color: var(--cds-support-error) !important; }
+.text-secondary { color: var(--cds-text-secondary) !important; }
+
+// Feed tile
+.feed-tile {
+  padding: 0;
+  overflow: hidden;
+}
+
+.feed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--cds-spacing-04) var(--cds-spacing-05);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cds-text-secondary);
+}
+
+.feed-scroll {
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-thumb { background: var(--cds-border-strong); border-radius: 3px; }
+}
+
+.feed-row {
+  transition: background 0.1s;
+
+  &.row-entry {
+    background: color-mix(in srgb, var(--cds-support-success) 8%, transparent);
+  }
+  &.row-loss {
+    background: color-mix(in srgb, var(--cds-support-error) 8%, transparent);
+  }
+}
+
+// Position tile
+.position-tile {
+  border-left: 3px solid var(--cds-border-interactive);
+}
+
+// Content area overrides
+.enigma-content {
+  padding: 0;
+  background: var(--cds-background);
+  min-height: calc(100vh - 48px);
+}
+
+// Header tweaks
+.enigma-header {
+  border-bottom: 1px solid var(--cds-border-subtle);
+}
+
