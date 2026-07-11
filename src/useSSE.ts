@@ -1,7 +1,8 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import type { SSEMessage, Decision, EnigmaState } from './types';
+import { API } from './config';
 
-const SSE_URL = 'http://localhost:9090/api/stream';
+const SSE_URL = `${API}/stream`;
 const CACHE_KEY = 'enigma-decisions';
 const MAX_CACHE = 200;
 
